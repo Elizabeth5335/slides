@@ -120,6 +120,30 @@ export default function Slides() {
     setCurrentIndex(index);
   }
 
+  const handleKeyDown = (e) => {
+    switch (e.code) {
+      case "ArrowLeft":
+        updateIndex(currentIndex - 1);
+        break;
+      case "ArrowRight":
+        updateIndex(currentIndex + 1);
+        break;
+      case "Space":
+        setIsPlaying((prev) => !prev);
+        break;
+      default:
+        break;
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  });
+
   return (
     <div className="slideshow">
       <audio
