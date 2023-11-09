@@ -14,6 +14,7 @@ import FrogsMp3 from "../assets/sounds/frogs.mp3";
 import FrogsWav from "../assets/sounds/frogs.wav";
 import RainImg from "../assets/images/rain.jpg";
 import RainMp3 from "../assets/sounds/rain.mp3";
+import guitar from "../assets/sounds/guitar.mp3";
 import RainWav from "../assets/sounds/rain.wav";
 
 const slidesData = [
@@ -65,35 +66,32 @@ type Slide = {
 export default function Slides() {
   const [slides] = useState<Slide[]>(slidesData);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [activeSlide, setActiveSlide] = useState(slides[1]);
   const audioElem = React.useRef(new Audio());
+  const prevAudioElem = React.useRef(new Audio());
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [prevSlide, setPrevSlide] = useState(slides[0]);
+  const [prevSlide, setPrevSlide] = useState(slides[1]);
 
-  // const fadeOutAudio = () => {
-  //   const fadeOutInterval = 10;
-  //   const fadeOutDuration = 1000;
-  //   const volume = audioElem.current.volume;
-  //   const step = volume / (fadeOutDuration / fadeOutInterval);
+  const fadeOutAudio = (audio) => {
+    const fadeOutInterval = 10;
+    const fadeOutDuration = 2000;
+    const volume = audio.current.volume;
+    const step = volume / (fadeOutDuration / fadeOutInterval);
+    const fadeOutIntervalId = setInterval(() => {
+      if (audio.current.volume >= step) {
+        audio.current.volume -= step;
+      } else {
+        audio.current.currentTime = 0;
+        audio.current.pause();
+        clearInterval(fadeOutIntervalId);
+      }
+    }, fadeOutInterval);
+  };
 
-  //   const fadeOutIntervalId = setInterval(() => {
-  //     if (audioElem.current.volume >= step) {
-  //       audioElem.current.volume -= step;
-  //     } else {
-  //       // audioElem.current.pause();
-  //       audioElem.current.currentTime = 0;
-  //       clearInterval(fadeOutIntervalId);
-  //     }
-  //   }, fadeOutInterval);
-  // };
-
-  // const fadeInAudio = () => {
+  // const fadeInAudio = (audioElem) => {
   //   const fadeInInterval = 10;
   //   const fadeInDuration = 2000;
   //   const step = 1 / (fadeInDuration / fadeInInterval);
-
   //   audioElem.current.volume = 0;
-
   //   const fadeInIntervalId = setInterval(() => {
   //     if (audioElem.current.volume < 1 - step) {
   //       audioElem.current.volume += step;
@@ -105,44 +103,64 @@ export default function Slides() {
 
   useEffect(() => {
     if (isPlaying) {
-      audioElem.current.play();
+      setTimeout(() => {
+        audioElem.current.play();
+      }, 1000);
     } else {
+      
       audioElem.current.pause();
-      audioElem.current.currentTime = 0;
     }
   }, [isPlaying, currentIndex]);
 
-
+  useEffect(() => {
+    if (isPlaying) {
+      prevAudioElem.current.play();
+      fadeOutAudio(prevAudioElem);
+    }
+  }, [currentIndex]);
 
   function updateIndex(index) {
+    prevAudioElem.current.src = audioElem.current.src;
+    prevAudioElem.current.volume = audioElem.current.volume;
+    prevAudioElem.current.currentTime = audioElem.current.currentTime;
+
+    setPrevSlide(slides[currentIndex]);
+
     const totalCount = slides.length;
-    setPrevSlide(slides[currentIndex])
     if (index < 0) {
       index = totalCount - 1;
     } else if (index >= totalCount) {
       index = 0;
     }
-    setCurrentIndex(index);
+    setCurrentIndex(index);    
+
   }
 
   return (
     <div className="slideshow">
-      <audio src={slides[currentIndex].audioMp3} ref={audioElem} />
-      
-      <div
-        className="slideshow-slider"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-      >
-        {slides.map((slide) => (
-          <Slide
-            key={slide.id}
-            currentSlide={slide}
-            activeSlide={activeSlide}
-            audioElem={audioElem}
-            isPlaying={isPlaying}
-            setIsPlaying={setIsPlaying}
-          />
-        ))}
+      <audio
+        src={slides[currentIndex].audioMp3}
+        ref={audioElem}
+        preload="auto"
+        loop
+      />
+      <audio src={prevSlide.audioMp3} ref={prevAudioElem} preload="auto" loop />
+
+      <div className="slideshow-slider">
+        <Slide
+          key={prevSlide.id}
+          className="prev"
+          currentSlide={slides[currentIndex]}
+          isPlaying={isPlaying}
+          setIsPlaying={setIsPlaying}
+        />
+        <Slide
+          key={slides[currentIndex].id}
+          className="active"
+          currentSlide={prevSlide}
+          isPlaying={isPlaying}
+          setIsPlaying={setIsPlaying}
+        />
       </div>
       <div className="controls">
         <button onClick={() => updateIndex(currentIndex - 1)}>Previous</button>

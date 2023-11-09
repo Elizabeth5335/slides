@@ -41,3 +41,24 @@
   transition: transform 3s;
 }
 
+
+
+
+
+.slide {
+  transition: transform 3s ease-in-out;
+  position: relative;
+}
+
+.slide.prev {
+  transform: translateX(0%);
+  display: inline-block;
+  z-index: 100;
+
+}
+
+.slide.active {
+  transform: translateX(-100%);
+  display: inline-block;
+}
+
