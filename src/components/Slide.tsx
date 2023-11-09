@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function Slide(props) {
-  const { currentSlide, setIsPlaying, isPlaying } = props;
+  const { currentSlide, setIsPlaying } = props;
 
   const toggleAudio = () => {
     setIsPlaying((prev) => !prev);
@@ -15,10 +15,8 @@ export default function Slide(props) {
           src={currentSlide.image}
           alt={currentSlide.text}
         />
-        <figcaption className="slide-text">{currentSlide.text}
-        </figcaption>
+        <figcaption className="slide-text">{currentSlide.text}</figcaption>
       </figure>
-      
     </div>
   );
 }

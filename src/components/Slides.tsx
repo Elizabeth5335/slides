@@ -87,27 +87,12 @@ export default function Slides() {
     }, fadeOutInterval);
   };
 
-  // const fadeInAudio = (audioElem) => {
-  //   const fadeInInterval = 10;
-  //   const fadeInDuration = 2000;
-  //   const step = 1 / (fadeInDuration / fadeInInterval);
-  //   audioElem.current.volume = 0;
-  //   const fadeInIntervalId = setInterval(() => {
-  //     if (audioElem.current.volume < 1 - step) {
-  //       audioElem.current.volume += step;
-  //     } else {
-  //       clearInterval(fadeInIntervalId);
-  //     }
-  //   }, fadeInInterval);
-  // };
-
   useEffect(() => {
     if (isPlaying) {
       setTimeout(() => {
         audioElem.current.play();
-      }, 1000);
+      }, 100);
     } else {
-      
       audioElem.current.pause();
     }
   }, [isPlaying, currentIndex]);
@@ -132,8 +117,7 @@ export default function Slides() {
     } else if (index >= totalCount) {
       index = 0;
     }
-    setCurrentIndex(index);    
-
+    setCurrentIndex(index);
   }
 
   return (
@@ -145,7 +129,14 @@ export default function Slides() {
         loop
       />
       <audio src={prevSlide.audioMp3} ref={prevAudioElem} preload="auto" loop />
-
+      {!isPlaying && (
+        <div
+          className="play-button-container"
+          onClick={() => setIsPlaying(true)}
+        >
+          <div className="play-button"></div>
+        </div>
+      )}
       <div className="slideshow-slider">
         <Slide
           key={prevSlide.id}
@@ -162,10 +153,24 @@ export default function Slides() {
           setIsPlaying={setIsPlaying}
         />
       </div>
-      <div className="controls">
-        <button onClick={() => updateIndex(currentIndex - 1)}>Previous</button>
-        <button onClick={() => updateIndex(currentIndex + 1)}>Next</button>
-      </div>
+      <button
+        className="controls-button left"
+        onClick={(e) => {
+          e.stopPropagation();
+          updateIndex(currentIndex - 1);
+        }}
+      >
+        Prev
+      </button>
+      <button
+        className="controls-button right"
+        onClick={(e) => {
+          e.stopPropagation();
+          updateIndex(currentIndex + 1);
+        }}
+      >
+        Next
+      </button>
     </div>
   );
 }
