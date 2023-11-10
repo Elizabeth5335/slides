@@ -3,35 +3,30 @@
     "id": 1,
     "text": "Cat purring",
     "image": "../assets/images/cat.jpg",
-    "audioMp3": "/assets/sounds/cat.mp3",
-    "audioWav": "/assets/sounds/cat.wav"
+    "audioMp3": "/assets/sounds/cat.mp3"
   },
   {
     "id": 2,
     "text": "Birds singing",
     "image": "/assets/images/birds.jpg",
-    "audioMp3": "/assets/sounds/birds.mp3",
-    "audioWav": "/assets/sounds/birds.wav"
+    "audioMp3": "/assets/sounds/birds.mp3"
   },
   {
     "id": 3,
     "text": "Waves sound",
     "image": "/assets/images/beach.jpg",
-    "audioMp3": "/assets/sounds/waves.mp3",
-    "audioWav": "/assets/sounds/waves.wav"
+    "audioMp3": "/assets/sounds/waves.mp3"
   },
   {
     "id": 4,
     "text": "Frogs",
     "image": "/assets/images/frogs.jpg",
-    "audioMp3": "/assets/sounds/frogs.mp3",
-    "audioWav": "/assets/sounds/frogs.wav"
+    "audioMp3": "/assets/sounds/frogs.mp3"
   },
   {
     "id": 5,
     "text": "Rain",
     "image": "/assets/images/rain.jpg",
-    "audioMp3": "/assets/sounds/rain.mp3",
-    "audioWav": "/assets/sounds/rain.wav"
+    "audioMp3": "/assets/sounds/rain.mp3"
   }
 ]

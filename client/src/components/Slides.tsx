@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Slide from "./Slide.tsx";
 
 type Slide = {
@@ -6,49 +6,70 @@ type Slide = {
   text: string;
   image: string;
   audioMp3: string;
-  audioWav: string;
 };
 
 export default function Slides() {
-  const [currentSlide, setCurrentSlide] = React.useState(null);
-  const [currentIndex, setCurrentIndex] = React.useState(0);
-  const [prevSlide, setPrevSlide] = React.useState(null);
+  const [currentSlide, setCurrentSlide] = React.useState<Slide | null>(null);
+  const [currentIndex, setCurrentIndex] = React.useState<number>(0);
+  const [totalCount, setTotalCount] = React.useState<number>(0);
+  const [prevSlide, setPrevSlide] = React.useState<Slide | null>(null);
 
+  //get first slide from server
   React.useEffect(() => {
     fetch(`../api/${currentIndex}`)
-      .then((res) => res.json())
-      .then((data) => setCurrentSlide(data));
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Something is wrong with network response");
+        }
+        return res.json();
+      })
+      .then((data) => setCurrentSlide(data.element))
+      .catch((error) => console.error("Error fetching currentSlide:", error));
   }, [currentIndex]);
 
+  //get second slide from server (thought it's called previous)
   React.useEffect(() => {
     fetch("../api/1")
-      .then((res) => res.json())
-      .then((data) => {
-        setPrevSlide(data);
-      });
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Something is wrong with network response");
+        }
+        return res.json();
+      })
+      .then((data) => {setPrevSlide(data.element); setTotalCount(data.totalElements)})
+      .catch((error) => console.error("Error fetching prevSlide:", error));
   }, []);
 
-  const [isPlaying, setIsPlaying] = React.useState(false);
-  const audioElem = React.useRef(new Audio());
-  const prevAudioElem = React.useRef(new Audio());
 
-  const fadeOutAudio = (audio) => {
+  const [isPlaying, setIsPlaying] = React.useState<boolean>(false);
+  const audioElem = React.useRef(new Audio() as HTMLAudioElement);
+  const prevAudioElem = React.useRef(new Audio() as HTMLAudioElement);
+
+  function fadeOutAudio(audioRef: React.RefObject<HTMLAudioElement>): void {
+    const audio = audioRef.current;
+    if (!audio) {
+      console.error("Audio element is not defined");
+      return;
+    }
+
     const fadeOutInterval = 10;
     const fadeOutDuration = 2000;
-    const volume = audio.current.volume;
+    const volume = audio.volume;
     const step = volume / (fadeOutDuration / fadeOutInterval);
+
     const fadeOutIntervalId = setInterval(() => {
-      if (audio.current.volume >= step) {
-        audio.current.volume -= step;
+      if (audio.volume >= step) {
+        audio.volume -= step;
       } else {
-        audio.current.currentTime = 0;
-        audio.current.pause();
+        audio.currentTime = 0;
+        audio.pause();
         clearInterval(fadeOutIntervalId);
       }
     }, fadeOutInterval);
-  };
+  }
 
-  useEffect(() => {
+  //just play/pause logic:
+  React.useEffect(() => {
     if (isPlaying) {
       setTimeout(() => {
         audioElem.current.play();
@@ -58,22 +79,22 @@ export default function Slides() {
     }
   }, [isPlaying, currentIndex]);
 
-  useEffect(() => {
+  //fading out of previous sound:
+  React.useEffect(() => {
     if (isPlaying) {
       prevAudioElem.current.play();
       fadeOutAudio(prevAudioElem);
     }
   }, [currentIndex]);
 
-  function updateIndex(index) {
+  function updateIndex(index: number): void {
     prevAudioElem.current.src = audioElem.current.src;
     prevAudioElem.current.volume = audioElem.current.volume;
     prevAudioElem.current.currentTime = audioElem.current.currentTime;
 
     setPrevSlide(currentSlide);
-
-    // const totalCount = !slides ? 0 : slides.length;
-    const totalCount = 5;
+    
+    // Check if the index is within the valid range
     if (index < 0) {
       index = totalCount - 1;
     } else if (index >= totalCount) {
@@ -82,7 +103,11 @@ export default function Slides() {
     setCurrentIndex(index);
   }
 
-  const handleKeyDown = (e) => {
+  const toggleAudio = () => {
+    setIsPlaying((prev) => !prev);
+  };
+
+  function handleKeyDown(e: KeyboardEvent): void {
     switch (e.code) {
       case "ArrowLeft":
         updateIndex(currentIndex - 1);
@@ -91,14 +116,14 @@ export default function Slides() {
         updateIndex(currentIndex + 1);
         break;
       case "Space":
-        setIsPlaying((prev) => !prev);
+        toggleAudio();
         break;
       default:
         break;
     }
-  };
+  }
 
-  useEffect(() => {
+  React.useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
@@ -106,72 +131,67 @@ export default function Slides() {
     };
   });
 
- if (currentSlide && prevSlide) {
+  if (currentSlide && prevSlide) {
     return (
-      <>
-        <div className="slideshow">
-          <audio
-            src={currentSlide.audioMp3}
-            ref={audioElem}
-            preload="auto"
-            loop
-          />
-          {prevSlide && (
-            <audio
-              src={prevSlide.audioMp3}
-              ref={prevAudioElem}
-              preload="auto"
-              loop
-            />
-          )}
-          {!isPlaying && (
-            <div
-              className="play-button-container"
-              onClick={() => setIsPlaying(true)}
-            >
-              <div className="play-button"></div>
-            </div>
-          )}
-          <div className="slideshow-slider">
-            <Slide
-              key={prevSlide.id}
-              className="prev"
-              currentSlide={currentSlide}
-              isPlaying={isPlaying}
-              setIsPlaying={setIsPlaying}
-            />
-            <Slide
-              key={currentSlide.id}
-              className="active"
-              currentSlide={prevSlide}
-              isPlaying={isPlaying}
-              setIsPlaying={setIsPlaying}
-            />
+      <div className="slideshow">
+        <audio
+          src={currentSlide.audioMp3}
+          ref={audioElem}
+          preload="auto"
+          loop
+        />
+        <audio
+          src={prevSlide.audioMp3}
+          ref={prevAudioElem}
+          preload="auto"
+          loop
+        />
+
+        {!isPlaying && (
+          <div
+            className="play-button-container"
+            onClick={() => setIsPlaying(true)}
+          >
+            <div className="play-button"></div>
           </div>
-          <button
-            className="controls-button left"
-            onClick={(e) => {
-              e.stopPropagation();
-              updateIndex(currentIndex - 1);
-            }}
-          >
-            Prev
-          </button>
-          <button
-            className="controls-button right"
-            onClick={(e) => {
-              e.stopPropagation();
-              updateIndex(currentIndex + 1);
-            }}
-          >
-            Next
-          </button>
+        )}
+
+        <div className="slideshow-slider">
+          <Slide
+            key={prevSlide.id}
+            className="prev"
+            currentSlide={currentSlide}
+            toggleAudio={toggleAudio}
+          />
+          <Slide
+            key={currentSlide.id}
+            className="active"
+            currentSlide={prevSlide}
+            toggleAudio={toggleAudio}
+          />
         </div>
-      </>
+
+        <button
+          className="controls-button left"
+          onClick={(e) => {
+            e.stopPropagation();
+            updateIndex(currentIndex - 1);
+          }}
+        >
+          Prev
+        </button>
+        <button
+          className="controls-button right"
+          onClick={(e) => {
+            e.stopPropagation();
+            updateIndex(currentIndex + 1);
+          }}
+        >
+          Next
+        </button>
+      </div>
     );
   } else {
-    return (
-        <h1>Loading...</h1>
-    );
+    return <h1>Loading...</h1>;
   }
 }

@@ -1,14 +1,10 @@
 import React from "react";
 
-export default function Slide(props) {
-  const { currentSlide, setIsPlaying } = props;
+export default function Slide({ currentSlide, toggleAudio, className }) {
 
-  const toggleAudio = () => {
-    setIsPlaying((prev) => !prev);
-  };
 
   return (
-    <div className={`slide ${props.className}`}>
+    <div className={`slide ${className}`}>
       <figure onClick={toggleAudio}>
         <img
           className="slide-image"
